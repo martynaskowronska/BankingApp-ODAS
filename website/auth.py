@@ -8,6 +8,7 @@ def gen_random_inputs(pswd_lenght):
     inputs = random.sample(range(pswd_lenght), no_of_inputs)
     return inputs
 
+# def verify_password(given_password):
 
 @auth.route('/', methods=['GET', 'POST'])
 def client_number():
