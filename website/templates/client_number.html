@@ -1,0 +1,18 @@
+{% extends "base.html" %} {% block title %}Login{% endblock %} {% block content
+    %}
+    <form method="POST">
+        <div class="form-group">
+        <br />
+        <label for="client_number">Client number</label>
+        <input
+          type="client_number"
+          class="form-control"
+          id="client_number"
+          name="client_number"
+          placeholder="Enter your client number"
+        />
+      </div>
+      <br />
+      <button type="submit" class="btn btn-primary">Next</button>
+    </form>
+    {% endblock %}
