@@ -1,10 +1,12 @@
-from flask import Blueprint, render_template, request, flash
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from flask_login import login_required, current_user
 from .models import User, Permutation, UserInfo, Transfer
 from . import db
 from .auth import hash_password, encrypt_length
 import os
 from itertools import combinations 
+from dotenv import load_dotenv
+from Crypto.Cipher import AES
 
 views = Blueprint('views', __name__)
 
@@ -30,19 +32,22 @@ def new_transfer():
 
         if recipient_client_number != current_user.client_number:
             if recipient and recipient.first_name == recipient_first_name and recipient.last_name == recipient_last_name:
-                if sender.balance >= float(amount):
-                    transfer_data = {
-                        "amount": amount,
-                        "title": title,
-                        "recipient_client_number": recipient_client_number,
-                        "recipient_first_name": recipient_first_name,
-                        "recipient_last_name": recipient_last_name,
-                        "sender_client_number": sender_client_number
-                    }
-                    make_transfer(transfer_data)
-                    flash('Transfer sent correctly', category='success')
+                if len(title) <= 50:
+                    if sender.balance >= float(amount):
+                        transfer_data = {
+                            "amount": amount,
+                            "title": title,
+                            "recipient_client_number": recipient_client_number,
+                            "recipient_first_name": recipient_first_name,
+                            "recipient_last_name": recipient_last_name,
+                            "sender_client_number": sender_client_number
+                        }
+                        make_transfer(transfer_data)
+                        flash('Transfer sent correctly', category='success')
+                    else:
+                        flash('Not enough money on your account', category='error')
                 else:
-                    flash('Not enough money on your account', category='error')
+                    flash('Title must be shorter than 50 characters', category='error')
             else:
                 flash('Wrong recipient data', category='error')
         else:
@@ -66,11 +71,46 @@ def transfer_list():
     received_transfers = Transfer.query.filter_by(recipient_client_number = current_user.client_number).all()
     return render_template("transfer_list.html", user=current_user, user_info=user_info, received_transfers=received_transfers)
 
+@views.route('/data_secured', methods=['GET', 'POST'])
+@login_required
+def data_secured():
+    if request.method == 'POST':
+        password = hash_password(request.form.get("password"), current_user.salt)
+        if password == current_user.password:
+            session['password_access'] = True
+            return redirect(url_for('views.data'))
+        else:
+            flash('Wrong password', category='error')
+
+    return render_template("data_secured.html", user=current_user)
+
+def decrypt_data(encrypted_data):
+    load_dotenv()
+    key = os.getenv("AES2_KEY").encode('utf-8')
+
+    iv = encrypted_data[:16]
+    ciphertext = encrypted_data[16:]
+
+    decrypt_cipher = AES.new(key, AES.MODE_CFB, iv=iv)
+    decrypted_data = decrypt_cipher.decrypt(ciphertext)
+
+    return decrypted_data.decode('utf-8')
+
 @views.route('/data', methods=['GET'])
 @login_required
-def account_data():
+def data():
+    if not session.get('password_access'):
+        flash('Please enter password to access this page', category='error')
+        return redirect(url_for('views.data_secured'))
     user_info = UserInfo.query.filter_by(client_number = current_user.client_number).first()
-    return render_template("data.html", user=current_user, user_info=user_info)
+    if user_info:
+        id_number = decrypt_data(user_info.id_number)
+        card_number = decrypt_data(user_info.card_number)
+    else:
+        flash('Something went wrong. Try again', category='error')
+
+    session.pop('password_access')
+    return render_template("data.html", user=current_user, user_info=user_info, id_number = id_number, card_number=card_number)
 
 @views.route('/password_change', methods=['GET', 'POST'])
 @login_required

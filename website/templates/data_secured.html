@@ -1,0 +1,22 @@
+{% extends "base.html" %} {% block title %}Data{% endblock %} {% block content
+    %}
+    <form method="POST">
+        <div class="form-group">
+        <br />
+        <h1 align="center">Your confidential data</h1>
+        <br />
+        <label for="password">Type in your password to see your confidential data</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          name="password"
+          placeholder="Enter your password"
+          required
+          style="width: 300px"
+        />
+      </div>
+      <br />
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    {% endblock %}

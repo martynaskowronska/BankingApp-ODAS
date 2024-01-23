@@ -10,6 +10,8 @@ from Crypto.Cipher import AES
 from dotenv import load_dotenv
 from website.models import User, UserInfo, Permutation
 from website import db, create_app
+import math
+from collections import Counter
 
 def generate_substrings(password):
     substrings = []
@@ -146,4 +148,14 @@ def gen_new_user():
 
     print('User created!')
 
-gen_new_user()
+def entropy(password):
+    password_length = len(password)
+    char_probabilities = [count / password_length for count in Counter(password).values()]
+
+    # CH = -∑(pi * log2(pi))
+    entropy = -sum(p * math.log2(p) for p in char_probabilities if p > 0)
+
+    return entropy
+
+print(entropy("chleb"))
+

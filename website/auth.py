@@ -5,6 +5,7 @@ from Crypto.Cipher import AES
 from dotenv import load_dotenv
 import os, hashlib
 from flask_login import login_user, login_required, logout_user, current_user
+from datetime import datetime, timedelta
 
 auth = Blueprint('auth', __name__)
 
@@ -62,6 +63,8 @@ def client_number():
         if user:
             session['client_number'] = client_number
             session['password_access'] = True
+            if 'attempt' not in session:
+                session['attempt'] = 3
             return redirect(url_for('auth.password'))
         else:
             flash('Wrong client number. Try again.', category = 'error')
@@ -73,13 +76,19 @@ def password():
         flash('Please enter client number to access this page', category='error')
         return redirect(url_for('auth.client_number'))
 
+    if session.get('last_attempt'):
+        cooldown_duration = timedelta(minutes=10)
+    
     user = User.query.filter_by(client_number = session['client_number']).first()
     enc_pswd_lenght = user.password_length
     pswd_length = decrypt_length(enc_pswd_lenght)
 
     if request.method == 'GET':
         session['non_required_inputs'] = gen_random_inputs(pswd_length)
-        return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], user=current_user)
+        if session['attempt'] <= 0:
+            return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], user=current_user, disable_button = True)
+
+        return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], user=current_user, disable_button = False)
     else:
         provided_password = ''.join(request.form.get(f'input{i}') for i in range(pswd_length) if i not in session['non_required_inputs'])
         salt = user.salt
@@ -91,15 +100,28 @@ def password():
                 session.pop('non_required_inputs')
                 session.pop('client_number')
                 session.pop('password_access')
+                session.pop('attempt')
+                session.pop('last_attempt')
                 return redirect(url_for('views.home'))
             else:
+                attempt = session.get('attempt')
+                attempt -= 1
+                session['attempt'] = attempt
+                if attempt == 1:
+                    flash('This is your last attempt. After that you will have to wait 10 minutes', category='error')
+                
+                if attempt == 0:
+                    session['last_attempt'] = datetime.now()
+                    flash('3 failed attempts. You need to wait 10 minutes', category='error')
+                    return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], user=current_user, disable_button=True)
+
                 flash('Wrong password. Try again.', category='error')
                 session['non_required_inputs'] = gen_random_inputs(pswd_length)
-                return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], user=current_user)
+                return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], user=current_user, disable_button=False)
         else:
             flash('Something went wrog. Try again.', category='error')
             session['non_required_inputs'] = gen_random_inputs(pswd_length)
-            return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], suer=current_user)
+            return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], suer=current_user, disable_button = False)
 
 @auth.route('/logout')
 @login_required
