@@ -1,8 +1,8 @@
-# client number: 3341747763
-# password: Martini123
+# client number: 9941566005
+# password: OaHfFdDX
 
-# client number: 6648015724
-# password: ySMFEOLD
+# client number: 2674744122
+# password: dNpkPvhh
 
 from itertools import combinations 
 import hashlib, os, random, string
@@ -128,11 +128,11 @@ def gen_new_user():
     print(client_number)
     print(password)
 
-    first_name = "Jan"
-    last_name = "Kowalski"
-    balance = 10000
-    id_number = 'ABC123456'
-    card_number = "1234 5678 9012 3456"
+    first_name = "Piotr"
+    last_name = "Nowak"
+    balance = 5000
+    id_number = 'XYZ987654'
+    card_number = "9876 5432 1098 7654"
     enc_id_number = encrypt_data(id_number)
     enc_card_number = encrypt_data(card_number)
 
@@ -157,5 +157,4 @@ def entropy(password):
 
     return entropy
 
-print(entropy("chleb"))
-
+gen_new_user()

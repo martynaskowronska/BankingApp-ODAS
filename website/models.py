@@ -6,6 +6,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.Text)
     password_length = db.Column(db.Text)
     salt = db.Column(db.Text)
+    is_blocked = db.Column(db.Boolean, default=False)
 
     permutation = db.relationship('Permutation', uselist=False, back_populates='user', cascade='all')
     transfers = db.relationship('Transfer')

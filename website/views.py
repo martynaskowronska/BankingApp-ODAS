@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, logout_user
 from .models import User, Permutation, UserInfo, Transfer
 from . import db
 from .auth import hash_password, encrypt_length
@@ -74,12 +74,28 @@ def transfer_list():
 @views.route('/data_secured', methods=['GET', 'POST'])
 @login_required
 def data_secured():
+    if 'data_attempt' not in session:
+        session['data_attempt'] = 3
     if request.method == 'POST':
         password = hash_password(request.form.get("password"), current_user.salt)
         if password == current_user.password:
             session['password_access'] = True
+            session.pop('data_attempt')
             return redirect(url_for('views.data'))
         else:
+            attempt = session.get('data_attempt')
+            attempt -= 1
+            session['data_attempt'] = attempt
+            if attempt == 1:
+                flash('This is your last attempt. After that your account will be blocked', category='error')
+                
+            if attempt == 0:
+                current_user.is_blocked = True
+                db.session.commit()
+                logout_user()
+                flash('3 failed attempts. Your account is blocked. Please contant bank', category='error')
+                return redirect(url_for('auth.client_number'))
+
             flash('Wrong password', category='error')
 
     return render_template("data_secured.html", user=current_user)
@@ -115,6 +131,8 @@ def data():
 @views.route('/password_change', methods=['GET', 'POST'])
 @login_required
 def password_change():
+    if 'pswd_attempt' not in session:
+        session['pswd_attempt'] = 3
     if request.method == 'POST':
         current_password = hash_password(request.form.get("current_password"), current_user.salt)
         if current_user.password == current_password:
@@ -123,10 +141,24 @@ def password_change():
             if new_password == repeated_password:
                 new_salt = os.urandom(64)
                 change_password(new_password, new_salt)
+                session.pop('pswd_attempt')
                 flash('Password successfully changed', category='success')
             else:
                 flash('New password does not match', category='error')
         else:
+            attempt = session.get('pswd_attempt')
+            attempt -= 1
+            session['pswd_attempt'] = attempt
+            if attempt == 1:
+                flash('This is your last attempt. After that your account will be blocked', category='error')
+                
+            if attempt == 0:
+                current_user.is_blocked = True
+                db.session.commit()
+                logout_user()
+                flash('3 failed attempts. Your account is blocked. Please contant bank', category='error')
+                return redirect(url_for('auth.client_number'))
+            
             flash('Wrong current password', category='error')
 
     return render_template("password_change.html", user=current_user)
