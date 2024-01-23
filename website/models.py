@@ -21,10 +21,9 @@ class Permutation(db.Model):
 
     user = db.relationship('User', back_populates='permutation')
 
-
 class Transfer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    amount = db.Column(db.Integer)
+    amount = db.Column(db.Float(2))
     title = db.Column(db.String(50))
     recipient_client_number = db.Column(db.String(10))
     recipient_first_name = db.Column(db.String(50))
@@ -36,7 +35,7 @@ class UserInfo(db.Model):
     client_number = db.Column(db.String(10), db.ForeignKey('user.client_number'), unique=True)
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
-    balance = db.Column(db.Integer)
+    balance = db.Column(db.Float(2))
     id_number = db.Column(db.String(9))
     card_number = db.Column(db.String(16))
 

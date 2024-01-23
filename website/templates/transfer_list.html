@@ -1,0 +1,32 @@
+{% extends "base.html" %} {% block title %}Transfers{% endblock %} 
+{% block content%}
+<form method="POST">
+<br />
+<h1 align="center">Your transfers history</h1>
+<br />
+<div style="text-align: center;">
+    <ul class="list-group list-group-flush" id="transfers">
+        <h4>Transfers you made:</h4>
+        {% for transfer in user.transfers %}
+            Title: {{ transfer.title }} <br/>
+            Amount: {{ transfer.amount }} [zł]<br />
+            Recipient client number: {{transfer.recipient_client_number}} <br />
+            Recipient full name: {{transfer.recipient_first_name}} {{transfer.recipient_last_name}}
+            <br />
+        {% endfor %}
+    </ul>
+    <br />
+    <br />
+    <ul class="list-group list-group-flush" id="transfers">
+        <h4>Transfers you received:</h4>
+        {% for transfer in received_transfers %}
+            Title: {{ transfer.title }} <br/>
+            Amount: {{ transfer.amount }} [zł]<br />
+            Sender client number: {{transfer.sender_client_number}} <br />
+            Sender full name: {{transfer.recipient_first_name}} {{transfer.recipient_last_name}}
+            <br />
+        {% endfor %}
+    </ul>
+</div>
+</form>
+{% endblock %}

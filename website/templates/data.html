@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block title %}Data{% endblock %} 
+{% block content%}
+<br />
+<h1 align="center">{{user_info.first_name}} {{user_info.last_name}}</h1>
+<br />
+<div style="font-size: 22px; text-align: center;">
+    <span>Your id number:</span>
+    <br />
+        {{user_info.id_number}}
+    <br />
+    <br />
+    <span>Your card number:</span>
+    <br />
+        {{user_info.card_number}} [zł]
+</div>
+{% endblock %}

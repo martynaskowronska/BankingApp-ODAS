@@ -13,6 +13,19 @@ def gen_random_inputs(pswd_lenght):
     inputs = random.sample(range(pswd_lenght), no_of_inputs)
     return inputs
 
+def encrypt_length(password_length):
+    load_dotenv()
+    key = os.getenv("AES_KEY").encode('utf-8')
+    password_length_bytes = int.to_bytes(password_length, byteorder='big')
+    iv = os.urandom(16) 
+
+    cipher = AES.new(key, AES.MODE_CFB, iv=iv)
+    ciphertext = cipher.encrypt(password_length_bytes)
+
+    encrypted_length = iv + ciphertext
+
+    return encrypted_length
+
 def decrypt_length(encrypted_data):
     load_dotenv()
     key = os.getenv("AES_KEY").encode('utf-8')
@@ -22,7 +35,7 @@ def decrypt_length(encrypted_data):
 
     decrypt_cipher = AES.new(key, AES.MODE_CFB, iv=iv)
     decrypted_length_bytes = decrypt_cipher.decrypt(ciphertext)
-    decrypted_length = int.from_bytes(decrypted_length_bytes, byteorder='big')  # Remove padding
+    decrypted_length = int.from_bytes(decrypted_length_bytes, byteorder='big')
 
     return decrypted_length
 
@@ -34,7 +47,6 @@ def hash_password(password, salt):
 def verify_password(provided_password, stored_password, salt):
     hash_provided_password = hash_password(provided_password, salt)
 
-    print(hash_provided_password)
     for i in range(0, len(stored_password), len(hash_provided_password)):
         substring = stored_password[i:i+len(hash_provided_password)]
         if substring == hash_provided_password:
@@ -49,6 +61,7 @@ def client_number():
         user = User.query.filter_by(client_number = client_number).first()
         if user:
             session['client_number'] = client_number
+            session['password_access'] = True
             return redirect(url_for('auth.password'))
         else:
             flash('Wrong client number. Try again.', category = 'error')
@@ -56,6 +69,10 @@ def client_number():
 
 @auth.route('/password', methods=['GET', 'POST'])
 def password():
+    if not session.get('password_access'):
+        flash('Please enter client number to access this page', category='error')
+        return redirect(url_for('auth.client_number'))
+
     user = User.query.filter_by(client_number = session['client_number']).first()
     enc_pswd_lenght = user.password_length
     pswd_length = decrypt_length(enc_pswd_lenght)
@@ -73,6 +90,7 @@ def password():
                 login_user(user, remember=True)
                 session.pop('non_required_inputs')
                 session.pop('client_number')
+                session.pop('password_access')
                 return redirect(url_for('views.home'))
             else:
                 flash('Wrong password. Try again.', category='error')

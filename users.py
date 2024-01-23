@@ -1,5 +1,8 @@
-# client number: 8364170199
-# password: JreCmTdJ
+# client number: 3341747763
+# password: Martini123
+
+# client number: 6648015724
+# password: ySMFEOLD
 
 from itertools import combinations 
 import hashlib, os, random, string
@@ -142,3 +145,5 @@ def gen_new_user():
         db.session.commit()
 
     print('User created!')
+
+gen_new_user()
