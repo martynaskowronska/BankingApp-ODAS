@@ -4,6 +4,7 @@ from .models import User, Permutation
 from Crypto.Cipher import AES
 from dotenv import load_dotenv
 import os, hashlib
+from flask_login import login_user, login_required, logout_user, current_user
 
 auth = Blueprint('auth', __name__)
 
@@ -51,7 +52,7 @@ def client_number():
             return redirect(url_for('auth.password'))
         else:
             flash('Wrong client number. Try again.', category = 'error')
-    return render_template("client_number.html")
+    return render_template("client_number.html", user=current_user)
 
 @auth.route('/password', methods=['GET', 'POST'])
 def password():
@@ -61,24 +62,29 @@ def password():
 
     if request.method == 'GET':
         session['non_required_inputs'] = gen_random_inputs(pswd_length)
-        return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'])
+        return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], user=current_user)
     else:
         provided_password = ''.join(request.form.get(f'input{i}') for i in range(pswd_length) if i not in session['non_required_inputs'])
-        print(provided_password)
         salt = user.salt
         permutations = Permutation.query.filter_by(client_number = session['client_number']).first()
         if permutations:
             stored_password = permutations.permutations
             if verify_password(provided_password, stored_password, salt):
+                login_user(user, remember=True)
+                session.pop('non_required_inputs')
+                session.pop('client_number')
                 return redirect(url_for('views.home'))
             else:
                 flash('Wrong password. Try again.', category='error')
-                return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'])
+                session['non_required_inputs'] = gen_random_inputs(pswd_length)
+                return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], user=current_user)
         else:
             flash('Something went wrog. Try again.', category='error')
-            return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'])
-
+            session['non_required_inputs'] = gen_random_inputs(pswd_length)
+            return render_template("password.html", no_inputs=pswd_length, non_required_inputs = session['non_required_inputs'], suer=current_user)
 
 @auth.route('/logout')
+@login_required
 def logout():
-    return "<p>Logout</p>"
+    logout_user()
+    return redirect(url_for('auth.client_number'))

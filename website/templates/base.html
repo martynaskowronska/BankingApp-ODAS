@@ -29,9 +29,13 @@
       </button>
       <div class="collapse navbar-collapse" id="navbar">
         <div class="navbar-nav">
+          {% if user.is_authenticated %}
           <a class="nav-item nav-link" id="home" href="/home">Home</a>
+          <a class="nav-item nav-link" id="new_transfer" href="/new_transfer">Make a transfer</a>
           <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
-          <a class="nav-item nav-link" id="login" href="/">Login</a>
+          {% else %}
+          <a class="nav-item nav-link" id="client_number" href="/">Login</a>
+          {% endif %}
         </div>
       </div>
     </nav>

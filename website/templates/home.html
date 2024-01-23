@@ -1,4 +1,16 @@
 {% extends "base.html" %} {% block title %}Home{% endblock %} 
 {% block content%}
-<h1>This is a homepage</h1>
+<br />
+<h1 align="center">Welcome {{user_info.first_name}} {{user_info.last_name}}</h1>
+<br />
+<div style="font-size: 22px; text-align: center;">
+    <span>Your client number:</span>
+    <br />
+        {{user.client_number}}
+    <br />
+    <br />
+    <span>Your balance:</span>
+    <br />
+        {{user_info.balance}} [zł]
+</div>
 {% endblock %}

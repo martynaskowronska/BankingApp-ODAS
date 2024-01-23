@@ -142,16 +142,3 @@ def gen_new_user():
         db.session.commit()
 
     print('User created!')
-
-# gen_new_user()
-    
-
-
-app = create_app()
-with app.app_context():
-    user = User.query.filter_by(client_number = "8364170199").first()
-    print(hash_password("JreCmTdJ", user.salt))
-    print(user.salt)
-    print(generate_substrings("JreCmTdJ"))
-    perm = Permutation.query.filter_by(client_number = "4224140382").first()
-

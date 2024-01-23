@@ -1,0 +1,65 @@
+{% extends "base.html" %} {% block title %}New transfer{% endblock %} 
+{% block content%}
+<form method="POST">
+    <br />
+    <h1 align="center">Make a transfer</h1>
+    <br />
+    <label for="title">Title:</label>
+        <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        placeholder="Enter title"
+        required
+        style="width: 300px; align-self: center;"
+        />
+    <br />
+    <label for="amount">Amount:</label>
+        <input
+        type="text"
+        class="form-control"
+        id="amount"
+        name="amount"
+        placeholder="Enter amount"
+        required
+        style="width: 300px"
+        pattern="^\d+(\.\d{1,2})?$"
+        />
+    <br />
+    <label for="client_number">Recipient client number:</label>
+        <input
+        type="text"
+        class="form-control"
+        id="client_number"
+        name="client_number"
+        placeholder="Enter recipient client number"
+        required
+        style="width: 300px"
+        />
+    <br />
+    <label for="first_name">Recipient first name:</label>
+    <input
+        type="text"
+        class="form-control"
+        id="first_name"
+        name="first_name"
+        placeholder="Enter recipient first name"
+        required
+        style="width: 300px"
+        />
+    <br />
+    <label for="last_name">Recipient last name:</label>
+        <input
+        type="text"
+        class="form-control"
+        id="last_name"
+        name="last_name"
+        placeholder="Enter recipient last name"
+        required
+        style="width: 300px"
+        />
+    <br />
+    <button type="submit" class="btn btn-primary">Send</button>
+</form>
+{% endblock %}

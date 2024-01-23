@@ -11,6 +11,8 @@ class User(db.Model, UserMixin):
     transfers = db.relationship('Transfer')
     user_info = db.relationship('UserInfo', uselist=False, back_populates='user', cascade='all')
 
+    def get_id(self):
+        return str(self.client_number)
 
 class Permutation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
