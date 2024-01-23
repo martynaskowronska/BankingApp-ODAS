@@ -3,7 +3,7 @@ from flask_login import login_required, current_user, logout_user
 from .models import User, Permutation, UserInfo, Transfer
 from . import db
 from .auth import hash_password, encrypt_length
-import os
+import os, math, string
 from itertools import combinations 
 from dotenv import load_dotenv
 from Crypto.Cipher import AES
@@ -60,7 +60,7 @@ def make_transfer(transfer_data):
     recipient.balance += float(transfer_data["amount"])
     sender = UserInfo.query.filter_by(client_number = transfer_data["sender_client_number"]).first()
     sender.balance -= float(transfer_data["amount"])
-    new_transfer = Transfer(title=transfer_data["title"], amount=transfer_data["amount"], recipient_client_number=transfer_data["recipient_client_number"], recipient_first_name=transfer_data["recipient_first_name"], recipient_last_name=transfer_data["recipient_last_name"], sender_client_number=transfer_data["sender_client_number"])
+    new_transfer = Transfer(title=transfer_data["title"], amount=transfer_data["amount"], recipient_client_number=transfer_data["recipient_client_number"], recipient_first_name=transfer_data["recipient_first_name"], recipient_last_name=transfer_data["recipient_last_name"], sender_client_number=transfer_data["sender_client_number"], sender_first_name=sender.first_name, sender_last_name = sender.last_name)
     db.session.add(new_transfer)
     db.session.commit()
 
@@ -139,10 +139,16 @@ def password_change():
             new_password = request.form.get("new_password")
             repeated_password = request.form.get("repeated_password")
             if new_password == repeated_password:
-                new_salt = os.urandom(64)
-                change_password(new_password, new_salt)
-                session.pop('pswd_attempt')
-                flash('Password successfully changed', category='success')
+                if has_required_characters and len(new_password)>=8:
+                    if entropy(new_password) >= 52:
+                        new_salt = os.urandom(64)
+                        change_password(new_password, new_salt)
+                        session.pop('pswd_attempt')
+                        flash('Password successfully changed', category='success')
+                    else:
+                        flash('New password is too weak. Try again', category='error')
+                else:
+                    flash('New password must be at least 8 characters long and contain upper cases, lower cases, numbers and special signs', category='error')
             else:
                 flash('New password does not match', category='error')
         else:
@@ -194,3 +200,19 @@ def change_password(new_password, new_salt):
         flash('Something went wrong. Try again', category='error')
 
     db.session.commit()
+
+# H = log2(R^L)
+def entropy(password):
+    CHARS_SET_SIZE = 94
+    password_length = len(password)
+    entropy = math.log2(CHARS_SET_SIZE ** password_length)
+
+    return entropy
+
+def has_required_characters(password):
+    has_uppercase = any(char.isupper() for char in password)
+    has_lowercase = any(char.islower() for char in password)
+    has_digit = any(char.isdigit() for char in password)
+    has_special = any(char in string.punctuation for char in password)
+
+    return has_uppercase and has_lowercase and has_digit and has_special

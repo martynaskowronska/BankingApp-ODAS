@@ -30,6 +30,8 @@ class Transfer(db.Model):
     recipient_first_name = db.Column(db.String(50))
     recipient_last_name = db.Column(db.String(50))
     sender_client_number = db.Column(db.String(10), db.ForeignKey('user.client_number'))
+    sender_first_name = db.Column(db.String(50))
+    sender_last_name = db.Column(db.String(50))
 
 class UserInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
