@@ -5,7 +5,7 @@ from Crypto.Cipher import AES
 from dotenv import load_dotenv
 import os, hashlib
 from flask_login import login_user, login_required, logout_user, current_user
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from . import db
 
 auth = Blueprint('auth', __name__)
